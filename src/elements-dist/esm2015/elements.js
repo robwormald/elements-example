@@ -1,9 +1,9 @@
 /**
- * @license Angular v6.0.0-beta.5-8531ff3335
+ * @license Angular v6.0.0-beta.5-eb030f4eb4
  * (c) 2010-2018 Google, Inc. https://angular.io/
  * License: MIT
  */
-import { ApplicationRef, Injector, SimpleChange, Version } from '@angular/core';
+import { ApplicationRef, ComponentFactoryResolver, Injector, SimpleChange, Version } from '@angular/core';
 import { merge } from 'rxjs/observable/merge';
 import { map } from 'rxjs/operator/map';
 
@@ -58,7 +58,7 @@ const scheduler = {
  * @param {?} input
  * @return {?}
  */
-function camelToKebabCase(input) {
+function camelToDashCase(input) {
     return input.replace(/[A-Z]/g, char => `-${char.toLowerCase()}`);
 }
 /**
@@ -192,27 +192,6 @@ function findMatchingIndex(node, selectors, defaultIndex) {
  */
 const DESTROY_DELAY = 10;
 /**
- * Creates an NgElementConfig based on the provided component factory and injector. By default,
- * the observed attributes on the NgElement will be the kebab-case version of the component inputs.
- *
- * \@experimental
- * @param {?} componentFactory
- * @param {?} injector
- * @return {?}
- */
-function getConfigFromComponentFactory(componentFactory, injector) {
-    const /** @type {?} */ attributeToPropertyInputs = new Map();
-    componentFactory.inputs.forEach(({ propName, templateName }) => {
-        const /** @type {?} */ attr = camelToKebabCase(templateName);
-        attributeToPropertyInputs.set(attr, propName);
-    });
-    return {
-        strategyFactory: new ComponentFactoryNgElementStrategyFactory(componentFactory, injector),
-        propertyInputs: componentFactory.inputs.map(({ propName }) => propName),
-        attributeToPropertyInputs,
-    };
-}
-/**
  * Factory that creates new ComponentFactoryNgElementStrategy instances with the strategy factory's
  * injector. A new strategy instance is created with the provided component factory which will
  * create its components on connect.
@@ -301,8 +280,11 @@ class ComponentFactoryNgElementStrategy {
         }
         // Schedule the component to be destroyed after a small timeout in case it is being
         // moved elsewhere in the DOM
-        this.scheduledDestroyFn =
-            scheduler.schedule(() => { /** @type {?} */ ((this.componentRef)).destroy(); }, DESTROY_DELAY);
+        this.scheduledDestroyFn = scheduler.schedule(() => {
+            if (this.componentRef) {
+                /** @type {?} */ ((this.componentRef)).destroy();
+            }
+        }, DESTROY_DELAY);
     }
     /**
      * Returns the component property value. If the component has not yet been created, the value is
@@ -487,6 +469,18 @@ class NgElement extends HTMLElement {
  */
 
 /**
+ * Gets a map of default set of attributes to observe and the properties they affect.
+ * @param {?} inputs
+ * @return {?}
+ */
+function getDefaultAttributeToPropertyInputs(inputs) {
+    const /** @type {?} */ attributeToPropertyInputs = new Map();
+    inputs.forEach(({ propName, templateName }) => {
+        attributeToPropertyInputs.set(camelToDashCase(templateName), propName);
+    });
+    return attributeToPropertyInputs;
+}
+/**
  * \@whatItDoes Creates a custom element class based on an Angular Component. Takes a configuration
  * that provides initialization information to the created class. E.g. the configuration's injector
  * will be the initial injector set on the class which will be used for each created instance.
@@ -500,10 +494,17 @@ class NgElement extends HTMLElement {
  *
  * \@experimental
  * @template P
+ * @param {?} component
  * @param {?} config
  * @return {?}
  */
-function createNgElementConstructor(config) {
+function createNgElementConstructor(component, config) {
+    const /** @type {?} */ componentFactoryResolver = /** @type {?} */ (config.injector.get(ComponentFactoryResolver));
+    const /** @type {?} */ componentFactory = componentFactoryResolver.resolveComponentFactory(component);
+    const /** @type {?} */ inputs = componentFactory.inputs;
+    const /** @type {?} */ defaultStrategyFactory = config.strategyFactory ||
+        new ComponentFactoryNgElementStrategyFactory(componentFactory, config.injector);
+    const /** @type {?} */ attributeToPropertyInputs = config.attributeToPropertyInputs || getDefaultAttributeToPropertyInputs(inputs);
     class NgElementImpl extends NgElement {
         /**
          * @param {?=} strategyFactoryOverride
@@ -512,7 +513,7 @@ function createNgElementConstructor(config) {
             super();
             // Use the constructor's strategy factory override if it is present, otherwise default to
             // the config's factory.
-            const /** @type {?} */ strategyFactory = strategyFactoryOverride || config.strategyFactory;
+            const /** @type {?} */ strategyFactory = strategyFactoryOverride || defaultStrategyFactory;
             this.ngElementStrategy = strategyFactory.create();
         }
         /**
@@ -523,7 +524,7 @@ function createNgElementConstructor(config) {
          * @return {?}
          */
         attributeChangedCallback(attrName, oldValue, newValue, namespace) {
-            const /** @type {?} */ propName = /** @type {?} */ ((config.attributeToPropertyInputs.get(attrName)));
+            const /** @type {?} */ propName = /** @type {?} */ ((attributeToPropertyInputs.get(attrName)));
             this.ngElementStrategy.setPropertyValue(propName, newValue);
         }
         /**
@@ -531,7 +532,7 @@ function createNgElementConstructor(config) {
          */
         connectedCallback() {
             // Take element attribute inputs and set them as inputs on the strategy
-            config.attributeToPropertyInputs.forEach((propName, attrName) => {
+            attributeToPropertyInputs.forEach((propName, attrName) => {
                 const /** @type {?} */ value = this.getAttribute(attrName);
                 if (value) {
                     this.ngElementStrategy.setPropertyValue(propName, value);
@@ -555,8 +556,9 @@ function createNgElementConstructor(config) {
             }
         }
     }
-    NgElementImpl.observedAttributes = Array.from(config.attributeToPropertyInputs.keys());
-    config.propertyInputs.forEach(property => {
+    NgElementImpl.observedAttributes = Array.from(attributeToPropertyInputs.keys());
+    const /** @type {?} */ propertyInputs = config.propertyInputs || inputs.map(({ propName }) => propName);
+    propertyInputs.forEach(property => {
         Object.defineProperty(NgElementImpl.prototype, property, {
             get: function () { return this.ngElementStrategy.getPropertyValue(property); },
             set: function (newValue) { this.ngElementStrategy.setPropertyValue(property, newValue); },
@@ -581,7 +583,7 @@ function createNgElementConstructor(config) {
 /**
  * \@experimental
  */
-const VERSION = new Version('6.0.0-beta.5-8531ff3335');
+const VERSION = new Version('6.0.0-beta.5-eb030f4eb4');
 
 /**
  * @fileoverview added by tsickle
@@ -605,5 +607,5 @@ const VERSION = new Version('6.0.0-beta.5-8531ff3335');
  * Generated bundle index. Do not edit.
  */
 
-export { ComponentFactoryNgElementStrategy, ComponentFactoryNgElementStrategyFactory, getConfigFromComponentFactory, NgElement, createNgElementConstructor, VERSION };
+export { NgElement, createNgElementConstructor, VERSION };
 //# sourceMappingURL=elements.js.map

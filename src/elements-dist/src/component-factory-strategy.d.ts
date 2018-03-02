@@ -9,17 +9,6 @@ import { ComponentFactory, Injector } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { NgElementStrategy, NgElementStrategyEvent, NgElementStrategyFactory } from './element-strategy';
 /**
- * Creates an NgElementConfig based on the provided component factory and injector. By default,
- * the observed attributes on the NgElement will be the kebab-case version of the component inputs.
- *
- * @experimental
- */
-export declare function getConfigFromComponentFactory(componentFactory: ComponentFactory<any>, injector: Injector): {
-    strategyFactory: ComponentFactoryNgElementStrategyFactory;
-    propertyInputs: string[];
-    attributeToPropertyInputs: Map<string, string>;
-};
-/**
  * Factory that creates new ComponentFactoryNgElementStrategy instances with the strategy factory's
  * injector. A new strategy instance is created with the provided component factory which will
  * create its components on connect.

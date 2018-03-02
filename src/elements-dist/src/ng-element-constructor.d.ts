@@ -5,6 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
+import { Injector, Type } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { NgElementStrategy, NgElementStrategyFactory } from './element-strategy';
 /**
@@ -44,9 +45,10 @@ export declare type WithProperties<P> = {
  * @experimental
  */
 export interface NgElementConfig {
-    strategyFactory: NgElementStrategyFactory;
-    propertyInputs: string[];
-    attributeToPropertyInputs: Map<string, string>;
+    injector: Injector;
+    strategyFactory?: NgElementStrategyFactory;
+    propertyInputs?: string[];
+    attributeToPropertyInputs?: Map<string, string>;
 }
 /**
  * @whatItDoes Creates a custom element class based on an Angular Component. Takes a configuration
@@ -62,4 +64,4 @@ export interface NgElementConfig {
  *
  * @experimental
  */
-export declare function createNgElementConstructor<P>(config: NgElementConfig): NgElementConstructor<P>;
+export declare function createNgElementConstructor<P>(component: Type<any>, config: NgElementConfig): NgElementConstructor<P>;

@@ -8,7 +8,7 @@ export declare const scheduler: {
 /**
  * Convert a camelCased string to kebab-cased.
  */
-export declare function camelToKebabCase(input: string): string;
+export declare function camelToDashCase(input: string): string;
 /**
  * Create a `CustomEvent` (even on browsers where `CustomEvent` is not a constructor).
  */
