@@ -5,21 +5,22 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { ComponentFactory, Injector } from '@angular/core';
+import { ComponentFactory, Injector, Type } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { NgElementStrategy, NgElementStrategyEvent, NgElementStrategyFactory } from './element-strategy';
 /**
- * Factory that creates new ComponentFactoryNgElementStrategy instances with the strategy factory's
+ * Factory that creates new ComponentNgElementStrategy instances with the strategy factory's
  * injector. A new strategy instance is created with the provided component factory which will
  * create its components on connect.
  *
  * @experimental
  */
-export declare class ComponentFactoryNgElementStrategyFactory implements NgElementStrategyFactory {
-    private componentFactory;
+export declare class ComponentNgElementStrategyFactory implements NgElementStrategyFactory {
+    private component;
     private injector;
-    constructor(componentFactory: ComponentFactory<any>, injector: Injector);
-    create(): ComponentFactoryNgElementStrategy;
+    componentFactory: ComponentFactory<any>;
+    constructor(component: Type<any>, injector: Injector);
+    create(injector: Injector): ComponentNgElementStrategy;
 }
 /**
  * Creates and destroys a component ref using a component factory and handles change detection
@@ -27,7 +28,7 @@ export declare class ComponentFactoryNgElementStrategyFactory implements NgEleme
  *
  * @experimental
  */
-export declare class ComponentFactoryNgElementStrategy implements NgElementStrategy {
+export declare class ComponentNgElementStrategy implements NgElementStrategy {
     private componentFactory;
     private injector;
     /** Merged stream of the component's output events. */
@@ -61,12 +62,12 @@ export declare class ComponentFactoryNgElementStrategy implements NgElementStrat
      * Returns the component property value. If the component has not yet been created, the value is
      * retrieved from the cached initialization values.
      */
-    getPropertyValue(property: string): any;
+    getInputValue(property: string): any;
     /**
      * Sets the input value for the property. If the component has not yet been created, the value is
      * cached and set when the component is created.
      */
-    setPropertyValue(property: string, value: any): void;
+    setInputValue(property: string, value: any): void;
     /**
      * Creates a new component through the component factory with the provided element host and
      * sets up its initial inputs, listens for outputs changes, and runs an initial change detection.

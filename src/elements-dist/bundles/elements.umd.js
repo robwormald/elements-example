@@ -1,5 +1,5 @@
 /**
- * @license Angular v6.0.0-beta.5-eb030f4eb4
+ * @license Angular v6.0.0-beta.6-10cd543ab9
  * (c) 2010-2018 Google, Inc. https://angular.io/
  * License: MIT
  */
@@ -36,7 +36,7 @@ function __extends(d, b) {
 }
 
 /**
- * @license Angular v6.0.0-beta.5-eb030f4eb4
+ * @license Angular v6.0.0-beta.6-10cd543ab9
  * (c) 2010-2018 Google, Inc. https://angular.io/
  * License: MIT
  */
@@ -236,25 +236,31 @@ function findMatchingIndex(node, selectors, defaultIndex) {
  */
 var DESTROY_DELAY = 10;
 /**
- * Factory that creates new ComponentFactoryNgElementStrategy instances with the strategy factory's
+ * Factory that creates new ComponentNgElementStrategy instances with the strategy factory's
  * injector. A new strategy instance is created with the provided component factory which will
  * create its components on connect.
  *
  * \@experimental
  */
-var ComponentFactoryNgElementStrategyFactory = /** @class */ (function () {
-    function ComponentFactoryNgElementStrategyFactory(componentFactory, injector) {
-        this.componentFactory = componentFactory;
+var ComponentNgElementStrategyFactory = /** @class */ (function () {
+    function ComponentNgElementStrategyFactory(component, injector) {
+        this.component = component;
         this.injector = injector;
+        this.componentFactory =
+            injector.get(_angular_core.ComponentFactoryResolver).resolveComponentFactory(component);
     }
     /**
+     * @param {?} injector
      * @return {?}
      */
-    ComponentFactoryNgElementStrategyFactory.prototype.create = /**
+    ComponentNgElementStrategyFactory.prototype.create = /**
+     * @param {?} injector
      * @return {?}
      */
-    function () { return new ComponentFactoryNgElementStrategy(this.componentFactory, this.injector); };
-    return ComponentFactoryNgElementStrategyFactory;
+    function (injector) {
+        return new ComponentNgElementStrategy(this.componentFactory, injector);
+    };
+    return ComponentNgElementStrategyFactory;
 }());
 /**
  * Creates and destroys a component ref using a component factory and handles change detection
@@ -262,8 +268,8 @@ var ComponentFactoryNgElementStrategyFactory = /** @class */ (function () {
  *
  * \@experimental
  */
-var ComponentFactoryNgElementStrategy = /** @class */ (function () {
-    function ComponentFactoryNgElementStrategy(componentFactory, injector) {
+var ComponentNgElementStrategy = /** @class */ (function () {
+    function ComponentNgElementStrategy(componentFactory, injector) {
         this.componentFactory = componentFactory;
         this.injector = injector;
         /**
@@ -301,7 +307,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @param {?} element
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.connect = /**
+    ComponentNgElementStrategy.prototype.connect = /**
      * Initializes a new component if one has not yet been created and cancels any scheduled
      * destruction.
      * @param {?} element
@@ -327,7 +333,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * being moved across the DOM.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.disconnect = /**
+    ComponentNgElementStrategy.prototype.disconnect = /**
      * Schedules the component to be destroyed after some small delay in case the element is just
      * being moved across the DOM.
      * @return {?}
@@ -343,6 +349,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
         this.scheduledDestroyFn = scheduler.schedule(function () {
             if (_this.componentRef) {
                 /** @type {?} */ ((_this.componentRef)).destroy();
+                _this.componentRef = null;
             }
         }, DESTROY_DELAY);
     };
@@ -356,7 +363,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @param {?} property
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.getPropertyValue = /**
+    ComponentNgElementStrategy.prototype.getInputValue = /**
      * Returns the component property value. If the component has not yet been created, the value is
      * retrieved from the cached initialization values.
      * @param {?} property
@@ -379,7 +386,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @param {?} value
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.setPropertyValue = /**
+    ComponentNgElementStrategy.prototype.setInputValue = /**
      * Sets the input value for the property. If the component has not yet been created, the value is
      * cached and set when the component is created.
      * @param {?} property
@@ -387,7 +394,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @return {?}
      */
     function (property, value) {
-        if (strictEquals(value, this.getPropertyValue(property))) {
+        if (strictEquals(value, this.getInputValue(property))) {
             return;
         }
         if (!this.componentRef) {
@@ -408,7 +415,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @param {?} element
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.initializeComponent = /**
+    ComponentNgElementStrategy.prototype.initializeComponent = /**
      * Creates a new component through the component factory with the provided element host and
      * sets up its initial inputs, listens for outputs changes, and runs an initial change detection.
      * @param {?} element
@@ -431,7 +438,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * Set any stored initial inputs on the component's properties.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.initializeInputs = /**
+    ComponentNgElementStrategy.prototype.initializeInputs = /**
      * Set any stored initial inputs on the component's properties.
      * @return {?}
      */
@@ -441,7 +448,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
             var propName = _a.propName;
             var /** @type {?} */ initialValue = _this.initialInputValues.get(propName);
             if (initialValue) {
-                _this.setPropertyValue(propName, initialValue);
+                _this.setInputValue(propName, initialValue);
             }
             else {
                 // Keep track of inputs that were not initialized in case we need to know this for
@@ -458,7 +465,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * Sets up listeners for the component's outputs so that the events stream emits the events.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.initializeOutputs = /**
+    ComponentNgElementStrategy.prototype.initializeOutputs = /**
      * Sets up listeners for the component's outputs so that the events stream emits the events.
      * @return {?}
      */
@@ -476,7 +483,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * Calls ngOnChanges with all the inputs that have changed since the last call.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.callNgOnChanges = /**
+    ComponentNgElementStrategy.prototype.callNgOnChanges = /**
      * Calls ngOnChanges with all the inputs that have changed since the last call.
      * @return {?}
      */
@@ -484,8 +491,11 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
         if (!this.implementsOnChanges || this.inputChanges === null) {
             return;
         }
-        (/** @type {?} */ ((((this.componentRef)).instance))).ngOnChanges(this.inputChanges);
+        // Cache the changes and set inputChanges to null to capture any changes that might occur
+        // during ngOnChanges.
+        var /** @type {?} */ inputChanges = this.inputChanges;
         this.inputChanges = null;
+        (/** @type {?} */ ((((this.componentRef)).instance))).ngOnChanges(inputChanges);
     };
     /**
      * Schedules change detection to run on the component.
@@ -496,7 +506,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * Ignores subsequent calls if already scheduled.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.scheduleDetectChanges = /**
+    ComponentNgElementStrategy.prototype.scheduleDetectChanges = /**
      * Schedules change detection to run on the component.
      * Ignores subsequent calls if already scheduled.
      * @return {?}
@@ -507,8 +517,8 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
             return;
         }
         this.scheduledChangeDetectionFn = scheduler.scheduleBeforeRender(function () {
-            _this.detectChanges();
             _this.scheduledChangeDetectionFn = null;
+            _this.detectChanges();
         });
     };
     /**
@@ -520,7 +530,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * @param {?} currentValue
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.recordInputChange = /**
+    ComponentNgElementStrategy.prototype.recordInputChange = /**
      * Records input changes so that the component receives SimpleChanges in its onChanges function.
      * @param {?} property
      * @param {?} currentValue
@@ -528,7 +538,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      */
     function (property, currentValue) {
         // Do not record the change if the component does not implement `OnChanges`.
-        if (!this.componentRef || !this.implementsOnChanges) {
+        if (this.componentRef && !this.implementsOnChanges) {
             return;
         }
         if (this.inputChanges === null) {
@@ -543,7 +553,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
         }
         var /** @type {?} */ isFirstChange = this.uninitializedInputs.has(property);
         this.uninitializedInputs.delete(property);
-        var /** @type {?} */ previousValue = isFirstChange ? undefined : this.getPropertyValue(property);
+        var /** @type {?} */ previousValue = isFirstChange ? undefined : this.getInputValue(property);
         this.inputChanges[property] = new _angular_core.SimpleChange(previousValue, currentValue, isFirstChange);
     };
     /** Runs change detection on the component. */
@@ -551,7 +561,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
      * Runs change detection on the component.
      * @return {?}
      */
-    ComponentFactoryNgElementStrategy.prototype.detectChanges = /**
+    ComponentNgElementStrategy.prototype.detectChanges = /**
      * Runs change detection on the component.
      * @return {?}
      */
@@ -562,7 +572,7 @@ var ComponentFactoryNgElementStrategy = /** @class */ (function () {
         this.callNgOnChanges(); /** @type {?} */
         ((this.componentRef)).changeDetectorRef.detectChanges();
     };
-    return ComponentFactoryNgElementStrategy;
+    return ComponentNgElementStrategy;
 }());
 
 /**
@@ -614,12 +624,24 @@ var NgElement = /** @class */ (function (_super) {
  * @return {?}
  */
 function getDefaultAttributeToPropertyInputs(inputs) {
-    var /** @type {?} */ attributeToPropertyInputs = new Map();
+    var /** @type {?} */ attributeToPropertyInputs = {};
     inputs.forEach(function (_a) {
         var propName = _a.propName, templateName = _a.templateName;
-        attributeToPropertyInputs.set(camelToDashCase(templateName), propName);
+        attributeToPropertyInputs[camelToDashCase(templateName)] = propName;
     });
     return attributeToPropertyInputs;
+}
+/**
+ * Gets a component's set of inputs. Uses the injector to get the component factory where the inputs
+ * are defined.
+ * @param {?} component
+ * @param {?} injector
+ * @return {?}
+ */
+function getComponentInputs(component, injector) {
+    var /** @type {?} */ componentFactoryResolver = injector.get(_angular_core.ComponentFactoryResolver);
+    var /** @type {?} */ componentFactory = componentFactoryResolver.resolveComponentFactory(component);
+    return componentFactory.inputs;
 }
 /**
  * \@whatItDoes Creates a custom element class based on an Angular Component. Takes a configuration
@@ -640,20 +662,15 @@ function getDefaultAttributeToPropertyInputs(inputs) {
  * @return {?}
  */
 function createNgElementConstructor(component, config) {
-    var /** @type {?} */ componentFactoryResolver = /** @type {?} */ (config.injector.get(_angular_core.ComponentFactoryResolver));
-    var /** @type {?} */ componentFactory = componentFactoryResolver.resolveComponentFactory(component);
-    var /** @type {?} */ inputs = componentFactory.inputs;
-    var /** @type {?} */ defaultStrategyFactory = config.strategyFactory ||
-        new ComponentFactoryNgElementStrategyFactory(componentFactory, config.injector);
+    var /** @type {?} */ inputs = getComponentInputs(component, config.injector);
+    var /** @type {?} */ strategyFactory = config.strategyFactory ||
+        new ComponentNgElementStrategyFactory(component, config.injector);
     var /** @type {?} */ attributeToPropertyInputs = config.attributeToPropertyInputs || getDefaultAttributeToPropertyInputs(inputs);
     var NgElementImpl = /** @class */ (function (_super) {
         __extends(NgElementImpl, _super);
-        function NgElementImpl(strategyFactoryOverride) {
+        function NgElementImpl(injector) {
             var _this = _super.call(this) || this;
-            // Use the constructor's strategy factory override if it is present, otherwise default to
-            // the config's factory.
-            var /** @type {?} */ strategyFactory = strategyFactoryOverride || defaultStrategyFactory;
-            _this.ngElementStrategy = strategyFactory.create();
+            _this.ngElementStrategy = strategyFactory.create(injector || config.injector);
             return _this;
         }
         /**
@@ -671,8 +688,8 @@ function createNgElementConstructor(component, config) {
          * @return {?}
          */
         function (attrName, oldValue, newValue, namespace) {
-            var /** @type {?} */ propName = /** @type {?} */ ((attributeToPropertyInputs.get(attrName)));
-            this.ngElementStrategy.setPropertyValue(propName, newValue);
+            var /** @type {?} */ propName = /** @type {?} */ ((attributeToPropertyInputs[attrName]));
+            this.ngElementStrategy.setInputValue(propName, newValue);
         };
         /**
          * @return {?}
@@ -682,13 +699,6 @@ function createNgElementConstructor(component, config) {
          */
         function () {
             var _this = this;
-            // Take element attribute inputs and set them as inputs on the strategy
-            attributeToPropertyInputs.forEach(function (propName, attrName) {
-                var /** @type {?} */ value = _this.getAttribute(attrName);
-                if (value) {
-                    _this.ngElementStrategy.setPropertyValue(propName, value);
-                }
-            });
             this.ngElementStrategy.connect(this);
             // Listen for events from the strategy and dispatch them as custom events
             this.ngElementEventsSubscription = this.ngElementStrategy.events.subscribe(function (e) {
@@ -709,17 +719,16 @@ function createNgElementConstructor(component, config) {
                 this.ngElementEventsSubscription = null;
             }
         };
-        NgElementImpl.observedAttributes = Array.from(attributeToPropertyInputs.keys());
+        NgElementImpl.observedAttributes = Object.keys(attributeToPropertyInputs);
         return NgElementImpl;
     }(NgElement));
-    var /** @type {?} */ propertyInputs = config.propertyInputs || inputs.map(function (_a) {
+    inputs.map(function (_a) {
         var propName = _a.propName;
         return propName;
-    });
-    propertyInputs.forEach(function (property) {
+    }).forEach(function (property) {
         Object.defineProperty(NgElementImpl.prototype, property, {
-            get: function () { return this.ngElementStrategy.getPropertyValue(property); },
-            set: function (newValue) { this.ngElementStrategy.setPropertyValue(property, newValue); },
+            get: function () { return this.ngElementStrategy.getInputValue(property); },
+            set: function (newValue) { this.ngElementStrategy.setInputValue(property, newValue); },
             configurable: true,
             enumerable: true,
         });
@@ -741,7 +750,7 @@ function createNgElementConstructor(component, config) {
 /**
  * \@experimental
  */
-var VERSION = new _angular_core.Version('6.0.0-beta.5-eb030f4eb4');
+var VERSION = new _angular_core.Version('6.0.0-beta.6-10cd543ab9');
 
 exports.NgElement = NgElement;
 exports.createNgElementConstructor = createNgElementConstructor;

@@ -15,7 +15,7 @@ import { NgElementStrategy, NgElementStrategyFactory } from './element-strategy'
  */
 export interface NgElementConstructor<P> {
     readonly observedAttributes: string[];
-    new (): NgElement & WithProperties<P>;
+    new (injector: Injector): NgElement & WithProperties<P>;
 }
 /**
  * Class that extends HTMLElement and implements the functionality needed for a custom element.
@@ -32,6 +32,8 @@ export declare abstract class NgElement extends HTMLElement {
 /**
  * Additional type information that can be added to the NgElement class for properties added based
  * on the inputs and methods of the underlying component.
+ *
+ * @experimental
  */
 export declare type WithProperties<P> = {
     [property in keyof P]: P[property];
@@ -47,8 +49,9 @@ export declare type WithProperties<P> = {
 export interface NgElementConfig {
     injector: Injector;
     strategyFactory?: NgElementStrategyFactory;
-    propertyInputs?: string[];
-    attributeToPropertyInputs?: Map<string, string>;
+    attributeToPropertyInputs?: {
+        [key: string]: string;
+    };
 }
 /**
  * @whatItDoes Creates a custom element class based on an Angular Component. Takes a configuration

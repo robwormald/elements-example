@@ -1,7 +1,7 @@
 import {ApplicationRef, ComponentFactoryResolver, Injectable, Injector} from '@angular/core';
 
 import {PopupComponent} from './popup.component';
-import {NgElement} from '../elements-dist';
+import {NgElementConstructor} from '../elements-dist';
 
 @Injectable()
 export class PopupService {
@@ -34,16 +34,17 @@ export class PopupService {
   }
 
   showAsElement(message: string) {
-    // Create element
-    const popup = document.createElement('popup-element') as NgElement & {message: string};
+    // Create element (alternatively `const popupEl = document.createElement('popup-element')`
+    const Popup = customElements.get('popup-element') as NgElementConstructor<{message: string}>;
+    const popupEl = new Popup(this.injector);
 
     // Listen to the close event
-    popup.addEventListener('closed', () => document.body.removeChild(popup));
+    popupEl.addEventListener('closed', () => document.body.removeChild(popupEl));
 
     // Set the message
-    popup.message = message;
+    popupEl.message = message;
 
     // Add to the DOM
-    document.body.appendChild(popup);
+    document.body.appendChild(popupEl);
   }
 }
