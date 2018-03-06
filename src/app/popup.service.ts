@@ -34,9 +34,8 @@ export class PopupService {
   }
 
   showAsElement(message: string) {
-    // Create element (alternatively `const popupEl = document.createElement('popup-element')`
-    const Popup = customElements.get('popup-element') as NgElementConstructor<{message: string}>;
-    const popupEl = new Popup(this.injector);
+    // Create element 
+    const popupEl = const popupEl = document.createElement('popup-element');
 
     // Listen to the close event
     popupEl.addEventListener('closed', () => document.body.removeChild(popupEl));
