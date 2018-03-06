@@ -35,7 +35,7 @@ export class PopupService {
 
   showAsElement(message: string) {
     // Create element 
-    const popupEl = const popupEl = document.createElement('popup-element');
+    const popupEl = document.createElement('popup-element');
 
     // Listen to the close event
     popupEl.addEventListener('closed', () => document.body.removeChild(popupEl));
